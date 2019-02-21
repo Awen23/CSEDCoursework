@@ -6,8 +6,3 @@ public class Test {
     //is this working? test 2
 }// another change added
 
-//testinggg
-
-//hello everyone
-
-//lucia testing
