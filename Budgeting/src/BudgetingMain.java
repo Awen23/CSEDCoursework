@@ -14,7 +14,7 @@ public class BudgetingMain {
         budget = Float.parseFloat(readFromFile(budgetLineNo));
         displayBudgetAndAmountSpent();
         while (loop1){
-            System.out.println("\n\nWhat would you like to do?: 1) view budget and balance 2) set budget 3) adjust amount spent 4) save and exit");
+            System.out.println("\n\nWhat would you like to do?: 1) view budget and amount spent 2) set budget 3) adjust amount spent 4) save and exit");
             System.out.print("Option number: ");
             input = getInputFromConsole();
             switch (input.charAt(0)){
@@ -28,7 +28,7 @@ public class BudgetingMain {
                     displayBudgetAndAmountSpent();
                     break;
                 case '3':
-                    System.out.print("\nAdjust Balance by: ");
+                    System.out.print("\nAdd amount spent by: ");
                     addToAmountSpent(validateInputStringToFloat());
                     displayBudgetAndAmountSpent();
                     break;
