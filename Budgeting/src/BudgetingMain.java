@@ -35,6 +35,11 @@ public class BudgetingMain {
                 case '4':
                     saveToFile();
                     System.exit(0);
+                    break;
+                default:
+                    System.out.println("Invalid input, please try again!");
+
+
             }
         }
     }
@@ -115,7 +120,7 @@ public class BudgetingMain {
     }
 
     private void displayBudgetAndAmountSpent(){
-        System.out.printf("Your Budget is:\t%.2f\nYou have spent:\t%.2f", getBudget(), getAmountSpent());
+        System.out.printf("Your Budget is:\t%.2f\nYou have spent:\t%.2f\nYour balance:\t%.2f", getBudget(), getAmountSpent(),getBudget()-getAmountSpent());
     }
 
     protected float getAmountSpent(){
