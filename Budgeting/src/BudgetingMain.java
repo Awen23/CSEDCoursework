@@ -28,7 +28,7 @@ public class BudgetingMain {
                     displayBudgetAndAmountSpent();
                     break;
                 case '3':
-                    System.out.print("\nAdd amount spent by: ");
+                    System.out.print("\nAdd amount spent: ");
                     addToAmountSpent(validateInputStringToFloat());
                     displayBudgetAndAmountSpent();
                     break;
