@@ -1,36 +1,42 @@
 package src;
 import java.io.*;
+import java.util.ArrayList;
 
 public class BudgetingMain {
+    private String username;
     private float amountSpent;
-    private int amountSpentLineNo = 1;
     private float budget;
-    private int budgetLineNo = 2;
+    private String timeUnits; //days, weeks, months, years
+    private float timePeriod;
+    private ArrayList<String> categories = new ArrayList<String>();
 
     public BudgetingMain(){
+        readFromFile();
+        MainMenu();
+    }
+
+    private void MainMenu(){
         boolean loop1 = true;
         String input;
-        amountSpent = Float.parseFloat(readFromFile(amountSpentLineNo));
-        budget = Float.parseFloat(readFromFile(budgetLineNo));
-        displayBudgetAndAmountSpent();
+
+        displayAll();
+
         while (loop1){
-            System.out.println("\n\nWhat would you like to do?: 1) view budget and amount spent 2) set budget 3) adjust amount spent 4) save and exit");
+            System.out.println("\n\nWhat would you like to do?: 1) view details 2) set up 3) adjust amount spent 4) save and exit");
             System.out.print("Option number: ");
-            input = getInputFromConsole();
+            input = getInputFromConsole().trim();
             switch (input.charAt(0)){
                 case '1':
-                    displayBudgetAndAmountSpent();
+                    displayAll();
                     break;
                 case '2':
-                    do {
-                        System.out.print("\nSet Budget to: ");
-                    } while (!setBudget(validateInputStringToFloat()));
-                    displayBudgetAndAmountSpent();
+                    setUp();
+                    displayAll();
                     break;
                 case '3':
                     System.out.print("\nAdd amount spent: ");
                     addToAmountSpent(validateInputStringToFloat());
-                    displayBudgetAndAmountSpent();
+                    displayAll();
                     break;
                 case '4':
                     saveToFile();
@@ -38,9 +44,103 @@ public class BudgetingMain {
                     break;
                 default:
                     System.out.println("Invalid input, please try again!");
-
-
             }
+        }
+    }
+
+    private void setUp(){
+        boolean loop = true;
+        String input;
+        while(loop){
+            System.out.println("\nWhat setting would you like to change?: 1) username 2) budget 3) time period 4) add category 5) remove category 6) go back");
+            System.out.print("Option number: ");
+            input = getInputFromConsole().trim();
+
+            switch (input.charAt(0)) {
+                case '1':
+                    changeUsername();
+                    break;
+                case '2':
+                    setBudget();
+                    break;
+                case '3':
+                    changeTimePeriod();
+                    break;
+                case '4':
+                    addCategory();
+                    break;
+                case '5':
+                    removeCategory();
+                    break;
+                case '6':
+                    return;
+                default:
+                    System.out.println("Invalid input, please try again!");
+            }
+        }
+    }
+
+    private void addCategory(){
+        String tempCategory;
+        System.out.print("New category name: ");
+        tempCategory = getInputFromConsole();
+        if (!categories.contains(tempCategory)){
+            categories.add(tempCategory);
+            saveToFile();
+        }
+    }
+
+    private void removeCategory(){
+        String tempCategory;
+        System.out.print("Category to remove: ");
+        tempCategory = getInputFromConsole();
+        if (categories.contains(tempCategory)){
+            categories.remove(tempCategory);
+            saveToFile();
+        }
+    }
+
+    private void changeTimePeriod(){
+        String input;
+        boolean loop = true;
+        System.out.println("Your current time period is " + timePeriod + " " + timeUnits);
+        do{
+            System.out.println("what are the new units? 1) days 2) weeks 3) months 4) years");
+            System.out.print("Option number: ");
+            input = getInputFromConsole().trim();
+            switch (input.charAt(0)){
+                case '1':
+                    timeUnits = "day";
+                    loop = false;
+                    break;
+                case '2':
+                    timeUnits = "week";
+                    loop = false;
+                    break;
+                case '3':
+                    timeUnits = "month";
+                    loop = false;
+                    break;
+                case '4':
+                    timeUnits = "year";
+                    loop = false;
+                    break;
+                default: System.out.println("invalid input");
+            }
+        }
+        while (loop);
+        System.out.print("how many " + timeUnits + "? ");
+        timePeriod = validateInputStringToFloat();
+        saveToFile();
+    }
+
+    private void changeUsername(){
+        String tempUsername;
+        System.out.print("Your username is " + username + ", what is your new username? ");
+        tempUsername = getInputFromConsole();
+        if (!username.equals(tempUsername)){
+            username = tempUsername;
+            saveToFile();
         }
     }
 
@@ -71,7 +171,7 @@ public class BudgetingMain {
                 System.exit(0);
             }
             */
-            return command.toUpperCase(); //Allows user to use any case they want
+            return command; //Allows user to use any case they want
         }
         catch (IOException e) {
             System.err.println(e.getMessage());
@@ -80,36 +180,45 @@ public class BudgetingMain {
         }
     }
 
-    /**
-     * @param lineNo : Line number in file to be returned
-     * @return : String of line at lineNo
-     */
-    private String readFromFile(int lineNo){
+    private void readFromFile(){
+        File budgetFile = new File("Budgeting\\BudgetInfo");
         String line = "Uh oh"; //compiler needed something
-        File budgetFile = new File("Budgeting\\BudgetHistory");
         try {
             FileReader fileIn = new FileReader(budgetFile);
             BufferedReader input = new BufferedReader(fileIn);
 
-            for (int i = 1; i < lineNo; i++) { //cycle through the file until it reaches line before requested line
-                input.readLine();
+            username = input.readLine();
+            amountSpent = Float.parseFloat(input.readLine());
+            budget = Float.parseFloat(input.readLine());
+            timeUnits = input.readLine();
+            timePeriod = Float.parseFloat(input.readLine());
+
+            while (line != null) {
+                line = input.readLine(); //read requested line
+                if (line != null) {
+                    categories.add(line);
+                }
             }
-            line = input.readLine(); //read requested line
             input.close(); //close the readers
         }
         catch (IOException e){
-            System.out.println("Budget file not found, make sure the file is called \"BudgetHistory.txt\"");
+            System.out.println("Budget file not found, make sure the file is called \"BudgetInfo.txt\"");
             System.out.println("Program closing");
             System.exit(1);
         }
-        return line;
     }
 
-    private boolean saveToFile(){
+    protected boolean saveToFile(){
         try {
-            PrintWriter out = new PrintWriter("Budgeting\\BudgetHistory");
+            PrintWriter out = new PrintWriter("Budgeting\\BudgetInfo");
+            out.println(getUsername());
             out.println(getAmountSpent());
             out.println(getBudget());
+            out.println(getTimeUnits());
+            out.println(getTimePeriod());
+            for (String category:categories) {
+                out.println(category);
+            }
             out.close();
             return true;
         }
@@ -119,8 +228,13 @@ public class BudgetingMain {
         }
     }
 
-    private void displayBudgetAndAmountSpent(){
-        System.out.printf("Your Budget is:\t%.2f\nYou have spent:\t%.2f\nYour balance:\t%.2f", getBudget(), getAmountSpent(),getBudget()-getAmountSpent());
+    private void displayAll(){
+        System.out.printf("\nHello %s!", getUsername());
+        System.out.printf("\nYour Budget is:\t%.2f", getBudget());
+        System.out.printf("\nYou have spent:\t%.2f", getAmountSpent());
+        System.out.printf("\nYour balance:\t%.2f", getBudget()-getAmountSpent());
+        System.out.printf("\nYour budget refreshes every:\t%.0f %s", getTimePeriod(), (getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s');
+        System.out.println("\nCategories: " + categories);
     }
 
     protected float getAmountSpent(){
@@ -131,23 +245,32 @@ public class BudgetingMain {
         return budget;
     }
 
+    protected String getUsername(){
+        return username;
+    }
+
+    protected String getTimeUnits(){
+        return timeUnits;
+    }
+
+    protected float getTimePeriod(){
+        return timePeriod;
+    }
+
     protected void addToAmountSpent(float amount){ //negative for removing from amountSpent
         amountSpent += amount;
     }
 
-    /**
-     * @param amount : number to set budget to
-     * @return : true if budget was set, false if not
-     */
-    protected boolean setBudget(float amount){
-        if (amount >= 0) {
-            budget = amount;
-            return true;
-        }
-        else {
-            System.out.println("Budget must be positive");
-            return false;
-        }
+    protected void setBudget(){
+        float amount = -1;
+        do {
+            System.out.print("\nSet Budget to: ");
+            amount = validateInputStringToFloat();
+            if (amount < 0){
+                System.out.println("Budget must be positive");
+            }
+        } while (amount < 0);
+        budget = amount;
     }
 
     public static void main(String[] args) {
