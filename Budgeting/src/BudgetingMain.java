@@ -1,4 +1,3 @@
-package src;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -8,7 +7,7 @@ public class BudgetingMain {
     private float budget;
     private String timeUnits; //days, weeks, months, years
     private float timePeriod;
-    private ArrayList<String> categories = new ArrayList<String>();
+    private ArrayList<String> categories = new ArrayList<>();
 
     public BudgetingMain(){
         readFromFile();
