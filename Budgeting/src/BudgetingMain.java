@@ -11,10 +11,9 @@ public class BudgetingMain {
 
     public BudgetingMain(){
         readFromFile();
-        MainMenu();
     }
 
-    private void MainMenu(){
+    public void mainMenu(){
         boolean loop1 = true;
         String input;
 
@@ -24,25 +23,29 @@ public class BudgetingMain {
             System.out.println("\n\nWhat would you like to do?: 1) view details 2) set up 3) adjust amount spent 4) save and exit");
             System.out.print("Option number: ");
             input = getInputFromConsole().trim();
-            switch (input.charAt(0)){
-                case '1':
-                    displayAll();
-                    break;
-                case '2':
-                    setUp();
-                    displayAll();
-                    break;
-                case '3':
-                    System.out.print("\nAdd amount spent: ");
-                    addToAmountSpent(validateInputStringToFloat());
-                    displayAll();
-                    break;
-                case '4':
-                    saveToFile();
-                    System.exit(0);
-                    break;
-                default:
-                    System.out.println("Invalid input, please try again!");
+            if(!input.isEmpty()) {
+                switch (input.charAt(0)) {
+                    case '1':
+                        displayAll();
+                        break;
+                    case '2':
+                        setUp();
+                        displayAll();
+                        break;
+                    case '3':
+                        System.out.print("\nAdd amount spent: ");
+                        addToAmountSpent(validateInputStringToFloat());
+                        displayAll();
+                        break;
+                    case '4':
+                        saveToFile();
+                        System.exit(0);
+                        break;
+                    default:
+                        System.out.println("Invalid input, please try again!");
+                }
+            } else {
+                System.out.println("Invalid input, please try again!");
             }
         }
     }
@@ -54,29 +57,51 @@ public class BudgetingMain {
             System.out.println("\nWhat setting would you like to change?: 1) username 2) budget 3) time period 4) add category 5) remove category 6) go back");
             System.out.print("Option number: ");
             input = getInputFromConsole().trim();
-
-            switch (input.charAt(0)) {
-                case '1':
-                    changeUsername();
-                    break;
-                case '2':
-                    setBudget();
-                    break;
-                case '3':
-                    changeTimePeriod();
-                    break;
-                case '4':
-                    addCategory();
-                    break;
-                case '5':
-                    removeCategory();
-                    break;
-                case '6':
-                    return;
-                default:
-                    System.out.println("Invalid input, please try again!");
+            if (!input.isEmpty()){
+                switch (input.charAt(0)) {
+                    case '1':
+                        if (areYouSure("change your username")) {
+                            changeUsername();
+                        }
+                        break;
+                    case '2':
+                        if (areYouSure("change the budget")) {
+                            setBudget();
+                        }
+                        break;
+                    case '3':
+                        if (areYouSure("change the time period")) {
+                            changeTimePeriod();
+                        }
+                        break;
+                    case '4':
+                        addCategory();
+                        break;
+                    case '5':
+                        removeCategory();
+                        break;
+                    case '6':
+                        return;
+                    default:
+                        System.out.println("Invalid input, please try again!");
+                }
+            } else {
+                System.out.println("Invalid input, please try again!");
             }
         }
+    }
+
+    private boolean areYouSure(String messageEnd){
+        String response = "Don't know";
+        System.out.println("Are you sure you would like to "+messageEnd +"?");
+        do {
+            response = getInputFromConsole();
+            if (!response.equals("Yes") && !response.equals("No")){
+                System.out.println("Invalid input, please try again!");
+            }
+        } while(!response.equals("Yes") && !response.equals("No"));
+
+        return response.equals("Yes");
     }
 
     private void addCategory(){
@@ -102,7 +127,7 @@ public class BudgetingMain {
     private void changeTimePeriod(){
         String input;
         boolean loop = true;
-        System.out.println("Your current time period is " + timePeriod + " " + timeUnits);
+        System.out.println("Your current time period is " + timePeriod + " " + ((getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s'));
         do{
             System.out.println("what are the new units? 1) days 2) weeks 3) months 4) years");
             System.out.print("Option number: ");
@@ -124,22 +149,48 @@ public class BudgetingMain {
                     timeUnits = "year";
                     loop = false;
                     break;
-                default: System.out.println("invalid input");
+                default: System.out.println("Invalid input, please try again!");
             }
         }
         while (loop);
-        System.out.print("how many " + timeUnits + "? ");
+        System.out.print("how many " + timeUnits + "s? ");
         timePeriod = validateInputStringToFloat();
         saveToFile();
     }
 
     private void changeUsername(){
         String tempUsername;
-        System.out.print("Your username is " + username + ", what is your new username? ");
-        tempUsername = getInputFromConsole();
+        do {
+            System.out.print("Your username is " + username + ", what is your new username? ");
+            tempUsername = getInputFromConsole();
+            if (!tempUsername.matches("^[a-zA-Z0-9 ]+")) {
+                System.out.println("Invalid input, please try again!");
+            }
+        } while (!tempUsername.matches("^[a-zA-Z0-9 ]+"));
         if (!username.equals(tempUsername)){
-            username = tempUsername;
+            username = tempUsername.trim();
             saveToFile();
+            System.out.println("Your username is now "+ username);
+        } else {
+            System.out.println("New username is the same as the original, returning to setup page");
+        }
+    }
+
+    protected void setBudget(){
+        float amount = -1;
+        do {
+            System.out.print("\nSet Budget to: ");
+            amount = validateInputStringToFloat();
+            if (amount < 0){
+                System.out.println("Budget must be positive");
+            }
+        } while (amount < 0);
+        if (amount == budget){
+            System.out.println("New budget is the same as the original, returning to setup page");
+        } else {
+            budget = amount;
+            saveToFile();
+            System.out.println("New budget is " + budget);
         }
     }
 
@@ -149,7 +200,13 @@ public class BudgetingMain {
         do{
             try {
                 value = Float.parseFloat(getInputFromConsole());
-                loop = false;
+                if (value > Float.MAX_VALUE){
+                    System.out.println("Value is too large, please try again");
+                } else if (value < Float.MIN_VALUE){
+                    System.out.println("Value is too small, please try again");
+                } else {
+                    loop = false;
+                }
             }
             catch(NumberFormatException e){
                 System.out.print("\nInput must be a number: ");
@@ -260,19 +317,8 @@ public class BudgetingMain {
         amountSpent += amount;
     }
 
-    protected void setBudget(){
-        float amount = -1;
-        do {
-            System.out.print("\nSet Budget to: ");
-            amount = validateInputStringToFloat();
-            if (amount < 0){
-                System.out.println("Budget must be positive");
-            }
-        } while (amount < 0);
-        budget = amount;
-    }
-
     public static void main(String[] args) {
         BudgetingMain budget = new BudgetingMain();
+        budget.mainMenu();
     }
 }
