@@ -54,7 +54,7 @@ public class BudgetingMain {
         boolean loop = true;
         String input;
         while(loop){
-            System.out.println("\nWhat setting would you like to change?: 1) username 2) budget 3) time period 4) add category 5) remove category 6) go back");
+            System.out.println("\nWhat setting would you like to change?: 1) username 2) budget 3) time period 4) category options 5) go back");
             System.out.print("Option number: ");
             input = getInputFromConsole().trim();
             if (!input.isEmpty()){
@@ -75,12 +75,44 @@ public class BudgetingMain {
                         }
                         break;
                     case '4':
-                        addCategory();
+                        categoryMenu();
                         break;
                     case '5':
-                        removeCategory();
+                        return;
+                    default:
+                        System.out.println("Invalid input, please try again!");
+                }
+            } else {
+                System.out.println("Invalid input, please try again!");
+            }
+        }
+    }
+
+    private void categoryMenu(){
+        boolean loop = true;
+        String input;
+        while(loop){
+            System.out.println("\nAdd, Remove or view categories?: 1) add category 2) remove category 3) view categories 4) go back");
+            System.out.print("Option number: ");
+            input = getInputFromConsole().trim();
+            if (!input.isEmpty()){
+                switch (input.charAt(0)) {
+                    case '1':
+                        if(areYouSure("add a category")){
+                            addCategory();
+                            viewCategories();
+                        }
                         break;
-                    case '6':
+                    case '2':
+                        if(areYouSure("remove a category")) {
+                            removeCategory();
+                            viewCategories();
+                        }
+                        break;
+                    case '3':
+                        viewCategories();
+                        break;
+                    case '4':
                         return;
                     default:
                         System.out.println("Invalid input, please try again!");
@@ -107,10 +139,12 @@ public class BudgetingMain {
     private void addCategory(){
         String tempCategory;
         System.out.print("New category name: ");
-        tempCategory = getInputFromConsole();
+        tempCategory = validateInputString();
         if (!categories.contains(tempCategory)){
             categories.add(tempCategory);
             saveToFile();
+        } else{
+            System.out.println("Category already exists");
         }
     }
 
@@ -121,7 +155,13 @@ public class BudgetingMain {
         if (categories.contains(tempCategory)){
             categories.remove(tempCategory);
             saveToFile();
+        } else{
+            System.out.println("Category doesn't exist");
         }
+    }
+
+    private void viewCategories() {
+        System.out.println("\nCategories: " + categories);
     }
 
     private void changeTimePeriod(){
@@ -166,15 +206,10 @@ public class BudgetingMain {
 
     private void changeUsername(){
         String tempUsername;
-        do {
-            System.out.print("Your username is " + username + ", what is your new username? ");
-            tempUsername = getInputFromConsole();
-            if (!tempUsername.matches("^[a-zA-Z0-9 ]+")) {
-                System.out.println("Invalid input, please try again!");
-            }
-        } while (!tempUsername.matches("^[a-zA-Z0-9 ]+"));
+        System.out.print("Your username is " + username + ", what is your new username? ");
+        tempUsername = validateInputString();
         if (!username.equals(tempUsername)){
-            username = tempUsername.trim();
+            username = tempUsername;
             saveToFile();
             System.out.println("Your username is now "+ username);
         } else {
@@ -199,6 +234,17 @@ public class BudgetingMain {
             saveToFile();
             System.out.println("New budget is " + budget);
         }
+    }
+
+    protected String validateInputString() {
+        String s;
+        do {
+            s = getInputFromConsole().trim();
+            if (!s.matches("^[a-zA-Z0-9 ]+")) {
+                System.out.println("Invalid input, please try again!");
+            }
+        } while (!s.matches("^[a-zA-Z0-9 ]+"));
+        return s;
     }
 
     protected float validateInputStringToFloat(){
@@ -319,7 +365,7 @@ public class BudgetingMain {
         System.out.printf("\nYou have spent:\t%.2f", getAmountSpent());
         System.out.printf("\nYour balance:\t%.2f", getBudget()-getAmountSpent());
         System.out.printf("\nYour budget refreshes every:\t%d %s", getTimePeriod(), (getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s');
-        System.out.println("\nCategories: " + categories);
+        viewCategories();
     }
 
     protected float getAmountSpent(){
