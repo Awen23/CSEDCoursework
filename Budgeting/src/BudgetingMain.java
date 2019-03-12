@@ -180,12 +180,12 @@ public class BudgetingMain {
         double amount = -1;
         do {
             System.out.print("\nSet Budget to: ");
-            amount = validateInputStringToFloat();
-            if (amount < 0){
-                System.out.println("Budget must be positive");
+            amount = Math.round(validateInputStringToFloat()*100.0)/100.0;
+            if (amount <= 0){
+                System.out.println("Budget must be greater than 0.01");
             }
-        } while (amount < 0);
-        amount = Math.round(amount*100.0)/100.0; //rounds to whole numbers therefore time by 100 then round it uses whole number rounding
+        } while (amount <= 0);
+         //rounds to whole numbers therefore time by 100 then round it uses whole number rounding
         if (amount == budget){
             System.out.println("New budget is the same as the original, returning to setup page");
         } else {
@@ -203,7 +203,7 @@ public class BudgetingMain {
                 value = Float.parseFloat(getInputFromConsole());
                 if (value > Float.MAX_VALUE){
                     System.out.println("Value is too large, please try again");
-                } else if (value < Float.MIN_VALUE){
+                } else if (value < -Float.MAX_VALUE){
                     System.out.println("Value is too small, please try again");
                 } else {
                     loop = false;
