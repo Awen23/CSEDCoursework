@@ -1,4 +1,7 @@
+import jdk.jfr.Category;
+
 import java.io.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class BudgetingMain {
@@ -15,12 +18,12 @@ public class BudgetingMain {
 
 
     public void mainMenu(){
-        boolean loop1 = true;
+        boolean loop = true;
         String input;
 
         displayAll();
 
-        while (loop1){
+        while (loop){
             System.out.println("\n\nWhat would you like to do?: 1) view details 2) set up 3) adjust amount spent 4) save and exit");
             System.out.print("Option number: ");
             input = getInputFromConsole().trim();
@@ -34,9 +37,7 @@ public class BudgetingMain {
                         displayAll();
                         break;
                     case '3':
-                        System.out.print("\nAdd amount spent: ");
-                        addToAmountSpent(validateInputStringToFloat());
-                        displayAll();
+                        addToAmountSpent();
                         break;
                     case '4':
                         saveToInformationFile();
@@ -222,6 +223,15 @@ public class BudgetingMain {
         }
     }
 
+    private void addCategoryParameter(String s){
+        if (!categories.contains(s)){
+            categories.add(s);
+            saveToInformationFile();
+        } else{
+            System.out.println("Category already exists");
+        }
+    }
+
     private void removeCategory(){
         String tempCategory;
         System.out.print("Category to remove: ");
@@ -238,8 +248,40 @@ public class BudgetingMain {
         System.out.println("\nCategories: " + categories);
     }
 
-    protected void addToAmountSpent(float amount){ //negative for removing from amountSpent
-        amountSpent += amount;
+    protected void addToAmountSpent(){
+        String inputCategory;
+        double tempSpent;
+        System.out.print("Which category is the expenditure in? ");
+        viewCategories();
+        do {
+            inputCategory = validateInputString();
+            if (!categories.contains(inputCategory)){
+                String response;
+                System.out.println(inputCategory + " is not an existing category, would you like to add "+inputCategory+" to the list of categories? ");
+                do { //allows the user to add categories on the fly
+                    response = getInputFromConsole();
+                    if (!response.equals("Yes") && !response.equals("No")){
+                        System.out.println("Invalid input, please try again!");
+                    }
+                } while(!response.equals("Yes") && !response.equals("No"));
+                if (response.equals("Yes")){
+                    addCategoryParameter(inputCategory);
+                }
+                System.out.print("\nWhich category is the expenditure in? ");
+            }
+        } while (!categories.contains(inputCategory));
+
+        System.out.print("\nHow much was spent: ");
+        do {
+            tempSpent = Math.round(validateInputStringToFloat()*100.0)/100.0;
+            if (tempSpent <= 0){
+                System.out.println("Amount spent must be greater than 0.01");
+            }
+        } while (tempSpent <= 0);
+        System.out.println("You spent "+tempSpent+" on "+inputCategory);
+        appendToSpendingHistoryFile(inputCategory,(float) tempSpent);
+        amountSpent += tempSpent;
+        System.out.printf("You have spent a total of:\t%.2f", getAmountSpent());
     }
 
 
@@ -366,6 +408,19 @@ public class BudgetingMain {
             return false;
         }
     }
+
+    protected void appendToSpendingHistoryFile(String category, Float amount){
+        try {
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(new File("Budgeting\\SpendingHistory"),true)));
+            out.println(category+":"+amount+":"+ LocalDateTime.now());
+            out.close();
+        }catch (FileNotFoundException e){
+            System.out.println(e + "Unable to save");
+        }catch (IOException e){
+            System.out.println(e + "saving failed");
+        }
+    }
+
 
     private void displayAll(){
         System.out.printf("\nHello %s!", getUsername());
