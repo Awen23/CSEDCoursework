@@ -6,7 +6,7 @@ public class BudgetingMain {
     private float amountSpent;
     private float budget;
     private String timeUnits; //days, weeks, months, years
-    private float timePeriod;
+    private int timePeriod;
     private ArrayList<String> categories = new ArrayList<>();
 
     public BudgetingMain(){
@@ -132,30 +132,36 @@ public class BudgetingMain {
             System.out.println("what are the new units? 1) days 2) weeks 3) months 4) years");
             System.out.print("Option number: ");
             input = getInputFromConsole().trim();
-            switch (input.charAt(0)){
-                case '1':
-                    timeUnits = "day";
-                    loop = false;
-                    break;
-                case '2':
-                    timeUnits = "week";
-                    loop = false;
-                    break;
-                case '3':
-                    timeUnits = "month";
-                    loop = false;
-                    break;
-                case '4':
-                    timeUnits = "year";
-                    loop = false;
-                    break;
-                default: System.out.println("Invalid input, please try again!");
+            if (!input.isEmpty()){
+                switch (input.charAt(0)) {
+                    case '1':
+                        timeUnits = "day";
+                        loop = false;
+                        break;
+                    case '2':
+                        timeUnits = "week";
+                        loop = false;
+                        break;
+                    case '3':
+                        timeUnits = "month";
+                        loop = false;
+                        break;
+                    case '4':
+                        timeUnits = "year";
+                        loop = false;
+                        break;
+                    default:
+                        System.out.println("Invalid input, please try again!");
+                }
+            } else {
+                System.out.println("Invalid input, please try again!");
             }
         }
         while (loop);
         System.out.print("how many " + timeUnits + "s? ");
-        timePeriod = validateInputStringToFloat();
+        timePeriod = validateInputStringToInteger();
         saveToFile();
+        System.out.printf("\nYour budget now refreshes every:\t%d %s", getTimePeriod(), (getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s');
     }
 
     private void changeUsername(){
@@ -217,6 +223,28 @@ public class BudgetingMain {
         return value;
     }
 
+    protected int validateInputStringToInteger(){
+        boolean loop = true;
+        int value = 0;
+        do{
+            try {
+                value = Integer.parseInt(getInputFromConsole());
+                if (value > Integer.MAX_VALUE){
+                    System.out.println("Value is too large, please try again");
+                } else if (value < -Integer.MAX_VALUE){
+                    System.out.println("Value is too small, please try again");
+                } else {
+                    loop = false;
+                }
+            }
+            catch(NumberFormatException e){
+                System.out.print("\nInput must be an integer: ");
+                loop = true;
+            }
+        } while (loop);
+        return value;
+    }
+
     protected String getInputFromConsole() {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
         try {
@@ -248,7 +276,7 @@ public class BudgetingMain {
             amountSpent = Float.parseFloat(input.readLine());
             budget = Float.parseFloat(input.readLine());
             timeUnits = input.readLine();
-            timePeriod = Float.parseFloat(input.readLine());
+            timePeriod = Integer.parseInt(input.readLine());
 
             while (line != null) {
                 line = input.readLine(); //read requested line
@@ -290,7 +318,7 @@ public class BudgetingMain {
         System.out.printf("\nYour Budget is:\t%.2f", getBudget());
         System.out.printf("\nYou have spent:\t%.2f", getAmountSpent());
         System.out.printf("\nYour balance:\t%.2f", getBudget()-getAmountSpent());
-        System.out.printf("\nYour budget refreshes every:\t%.0f %s", getTimePeriod(), (getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s');
+        System.out.printf("\nYour budget refreshes every:\t%d %s", getTimePeriod(), (getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s');
         System.out.println("\nCategories: " + categories);
     }
 
@@ -310,7 +338,7 @@ public class BudgetingMain {
         return timeUnits;
     }
 
-    protected float getTimePeriod(){
+    protected int getTimePeriod(){
         return timePeriod;
     }
 
