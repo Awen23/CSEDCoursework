@@ -177,7 +177,7 @@ public class BudgetingMain {
     }
 
     protected void setBudget(){
-        float amount = -1;
+        double amount = -1;
         do {
             System.out.print("\nSet Budget to: ");
             amount = validateInputStringToFloat();
@@ -185,10 +185,11 @@ public class BudgetingMain {
                 System.out.println("Budget must be positive");
             }
         } while (amount < 0);
+        amount = Math.round(amount*100.0)/100.0; //rounds to whole numbers therefore time by 100 then round it uses whole number rounding
         if (amount == budget){
             System.out.println("New budget is the same as the original, returning to setup page");
         } else {
-            budget = amount;
+            budget = (float) amount;
             saveToFile();
             System.out.println("New budget is " + budget);
         }
