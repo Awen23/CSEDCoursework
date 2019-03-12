@@ -266,8 +266,9 @@ public class BudgetingMain {
                 } while(!response.equals("Yes") && !response.equals("No"));
                 if (response.equals("Yes")){
                     addCategoryParameter(inputCategory);
+                }else {
+                    System.out.print("\nWhich category is the expenditure in? ");
                 }
-                System.out.print("\nWhich category is the expenditure in? ");
             }
         } while (!categories.contains(inputCategory));
 
