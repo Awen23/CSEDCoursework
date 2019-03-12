@@ -419,9 +419,16 @@ public class BudgetingMain {
             saveToInformationFile();
         }
         catch (IOException e){
-            System.out.println("Budget file not found, make sure the file is called \"BudgetInfo\"");
-            System.out.println("Program closing");
-            System.exit(1);
+            System.out.println("Budget file not found, using default values and creating file.");
+            username = "username";
+            amountSpent = 0;
+            budget = 500;
+            timeUnits = "month";
+            timePeriod = 1;
+            addCategoryParameter("Food");
+            addCategoryParameter("Entertainment");
+            addCategoryParameter("Study");
+            saveToInformationFile();
         }
     }
 
