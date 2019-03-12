@@ -368,12 +368,40 @@ public class BudgetingMain {
         try {
             FileReader fileIn = new FileReader(budgetFile);
             BufferedReader input = new BufferedReader(fileIn);
-
-            username = input.readLine();
-            amountSpent = Float.parseFloat(input.readLine());
-            budget = Float.parseFloat(input.readLine());
-            timeUnits = input.readLine();
-            timePeriod = Integer.parseInt(input.readLine());
+            try {
+                username = input.readLine();
+            } catch (NullPointerException e){
+                System.out.println("Username not found - default username in use");
+                username = "username";
+            }
+            try {
+                amountSpent = Float.parseFloat(input.readLine());
+            } catch (NullPointerException | NumberFormatException e){
+                System.out.println("Amount spent not found - default amount spent in use");
+                amountSpent = 0;
+            }
+            try {
+                budget = Float.parseFloat(input.readLine());
+            } catch (NullPointerException | NumberFormatException e) {
+                System.out.println("Budget not found - default budget in use");
+                budget = 500;
+            }
+            try {
+                timeUnits = input.readLine();
+                if (timeUnits != "day" && timeUnits != "week" && timeUnits != "month" && timeUnits != "year"){
+                    System.out.println("Time units not found - default time units in use");
+                    timeUnits = "month";
+                }
+            } catch (NullPointerException e) {
+                System.out.println("Time units not found - default time units in use");
+                timeUnits = "month";
+            }
+            try {
+                timePeriod = Integer.parseInt(input.readLine());
+            } catch (NullPointerException | NumberFormatException e) {
+                System.out.println("Time period not found - default time period in use");
+                timePeriod = 1;
+            }
 
             while (line != null) {
                 line = input.readLine(); //read requested line
@@ -381,10 +409,17 @@ public class BudgetingMain {
                     categories.add(line);
                 }
             }
+            if (categories.size() == 0){
+                System.out.println("Categories is empty - adding default categories");
+                addCategoryParameter("Food");
+                addCategoryParameter("Entertainment");
+                addCategoryParameter("Study");
+            }
             input.close(); //close the readers
+            saveToInformationFile();
         }
         catch (IOException e){
-            System.out.println("Budget file not found, make sure the file is called \"BudgetInfo.txt\"");
+            System.out.println("Budget file not found, make sure the file is called \"BudgetInfo\"");
             System.out.println("Program closing");
             System.exit(1);
         }
