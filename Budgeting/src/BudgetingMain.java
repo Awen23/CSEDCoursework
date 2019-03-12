@@ -13,6 +13,7 @@ public class BudgetingMain {
         readFromFile();
     }
 
+
     public void mainMenu(){
         boolean loop1 = true;
         String input;
@@ -38,7 +39,7 @@ public class BudgetingMain {
                         displayAll();
                         break;
                     case '4':
-                        saveToFile();
+                        saveToInformationFile();
                         System.exit(0);
                         break;
                     default:
@@ -123,6 +124,7 @@ public class BudgetingMain {
         }
     }
 
+
     private boolean areYouSure(String messageEnd){
         String response = "Don't know";
         System.out.println("Are you sure you would like to "+messageEnd +"?");
@@ -136,32 +138,36 @@ public class BudgetingMain {
         return response.equals("Yes");
     }
 
-    private void addCategory(){
-        String tempCategory;
-        System.out.print("New category name: ");
-        tempCategory = validateInputString();
-        if (!categories.contains(tempCategory)){
-            categories.add(tempCategory);
-            saveToFile();
-        } else{
-            System.out.println("Category already exists");
+    private void changeUsername(){
+        String tempUsername;
+        System.out.print("Your username is " + username + ", what is your new username? ");
+        tempUsername = validateInputString();
+        if (!username.equals(tempUsername)){
+            username = tempUsername;
+            saveToInformationFile();
+            System.out.println("Your username is now "+ username);
+        } else {
+            System.out.println("New username is the same as the original, returning to setup page");
         }
     }
 
-    private void removeCategory(){
-        String tempCategory;
-        System.out.print("Category to remove: ");
-        tempCategory = getInputFromConsole();
-        if (categories.contains(tempCategory)){
-            categories.remove(tempCategory);
-            saveToFile();
-        } else{
-            System.out.println("Category doesn't exist");
+    protected void setBudget(){
+        double amount = -1;
+        do {
+            System.out.print("\nSet Budget to: ");
+            amount = Math.round(validateInputStringToFloat()*100.0)/100.0;
+            if (amount <= 0){
+                System.out.println("Budget must be greater than 0.01");
+            }
+        } while (amount <= 0);
+        //rounds to whole numbers therefore time by 100 then round it uses whole number rounding
+        if (amount == budget){
+            System.out.println("New budget is the same as the original, returning to setup page");
+        } else {
+            budget = (float) amount;
+            saveToInformationFile();
+            System.out.println("New budget is " + budget);
         }
-    }
-
-    private void viewCategories() {
-        System.out.println("\nCategories: " + categories);
     }
 
     private void changeTimePeriod(){
@@ -200,39 +206,60 @@ public class BudgetingMain {
         while (loop);
         System.out.print("how many " + timeUnits + "s? ");
         timePeriod = validateInputStringToInteger();
-        saveToFile();
+        saveToInformationFile();
         System.out.printf("\nYour budget now refreshes every:\t%d %s", getTimePeriod(), (getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s');
     }
 
-    private void changeUsername(){
-        String tempUsername;
-        System.out.print("Your username is " + username + ", what is your new username? ");
-        tempUsername = validateInputString();
-        if (!username.equals(tempUsername)){
-            username = tempUsername;
-            saveToFile();
-            System.out.println("Your username is now "+ username);
-        } else {
-            System.out.println("New username is the same as the original, returning to setup page");
+    private void addCategory(){
+        String tempCategory;
+        System.out.print("New category name: ");
+        tempCategory = validateInputString();
+        if (!categories.contains(tempCategory)){
+            categories.add(tempCategory);
+            saveToInformationFile();
+        } else{
+            System.out.println("Category already exists");
         }
     }
 
-    protected void setBudget(){
-        double amount = -1;
-        do {
-            System.out.print("\nSet Budget to: ");
-            amount = Math.round(validateInputStringToFloat()*100.0)/100.0;
-            if (amount <= 0){
-                System.out.println("Budget must be greater than 0.01");
+    private void removeCategory(){
+        String tempCategory;
+        System.out.print("Category to remove: ");
+        tempCategory = getInputFromConsole();
+        if (categories.contains(tempCategory)){
+            categories.remove(tempCategory);
+            saveToInformationFile();
+        } else{
+            System.out.println("Category doesn't exist");
+        }
+    }
+
+    private void viewCategories() {
+        System.out.println("\nCategories: " + categories);
+    }
+
+    protected void addToAmountSpent(float amount){ //negative for removing from amountSpent
+        amountSpent += amount;
+    }
+
+
+    protected String getInputFromConsole() {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        try {
+            String command = reader.readLine();
+
+            //Close on an End-of-file (EOF) (Ctrl-D on the terminal)
+            /*if (command == null) {
+                //Exit code 0 for a graceful exit
+                System.exit(0);
             }
-        } while (amount <= 0);
-         //rounds to whole numbers therefore time by 100 then round it uses whole number rounding
-        if (amount == budget){
-            System.out.println("New budget is the same as the original, returning to setup page");
-        } else {
-            budget = (float) amount;
-            saveToFile();
-            System.out.println("New budget is " + budget);
+            */
+            return command; //Allows user to use any case they want
+        }
+        catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+            return null;
         }
     }
 
@@ -291,25 +318,6 @@ public class BudgetingMain {
         return value;
     }
 
-    protected String getInputFromConsole() {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        try {
-            String command = reader.readLine();
-
-            //Close on an End-of-file (EOF) (Ctrl-D on the terminal)
-            /*if (command == null) {
-                //Exit code 0 for a graceful exit
-                System.exit(0);
-            }
-            */
-            return command; //Allows user to use any case they want
-        }
-        catch (IOException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-            return null;
-        }
-    }
 
     private void readFromFile(){
         File budgetFile = new File("Budgeting\\BudgetInfo");
@@ -339,7 +347,7 @@ public class BudgetingMain {
         }
     }
 
-    protected boolean saveToFile(){
+    protected boolean saveToInformationFile(){
         try {
             PrintWriter out = new PrintWriter("Budgeting\\BudgetInfo");
             out.println(getUsername());
@@ -368,6 +376,7 @@ public class BudgetingMain {
         viewCategories();
     }
 
+
     protected float getAmountSpent(){
         return amountSpent;
     }
@@ -388,9 +397,6 @@ public class BudgetingMain {
         return timePeriod;
     }
 
-    protected void addToAmountSpent(float amount){ //negative for removing from amountSpent
-        amountSpent += amount;
-    }
 
     public static void main(String[] args) {
         BudgetingMain budget = new BudgetingMain();
