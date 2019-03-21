@@ -126,17 +126,20 @@ public class BudgetingMain {
     }
 
 
-    private boolean areYouSure(String messageEnd){
-        String response = "Don't know";
-        System.out.println("Are you sure you would like to "+messageEnd +"?");
+    private boolean YesNo(){
+        String response;
         do {
             response = getInputFromConsole();
             if (!response.equals("Yes") && !response.equals("No")){
                 System.out.println("Invalid input, please try again!");
             }
         } while(!response.equals("Yes") && !response.equals("No"));
-
         return response.equals("Yes");
+    }
+
+    private boolean areYouSure(String messageEnd){
+        System.out.println("Are you sure you would like to "+messageEnd +"?");
+        return YesNo();
     }
 
     private void changeUsername(){
@@ -256,15 +259,8 @@ public class BudgetingMain {
         do {
             inputCategory = validateInputString();
             if (!categories.contains(inputCategory)){
-                String response;
                 System.out.println(inputCategory + " is not an existing category, would you like to add "+inputCategory+" to the list of categories? ");
-                do { //allows the user to add categories on the fly
-                    response = getInputFromConsole();
-                    if (!response.equals("Yes") && !response.equals("No")){
-                        System.out.println("Invalid input, please try again!");
-                    }
-                } while(!response.equals("Yes") && !response.equals("No"));
-                if (response.equals("Yes")){
+                if (YesNo()){
                     addCategoryParameter(inputCategory);
                 }else {
                     System.out.print("\nWhich category is the expenditure in? ");
