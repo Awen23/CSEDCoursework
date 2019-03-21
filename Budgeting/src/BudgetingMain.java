@@ -318,14 +318,15 @@ public class BudgetingMain {
     }
 
     protected float validateInputStringToFloat(){
+        final float limit = 1000000000;
         boolean loop = true;
         float value = 0;
         do{
             try {
                 value = Float.parseFloat(getInputFromConsole());
-                if (value > Float.MAX_VALUE){
+                if (value > limit){
                     System.out.println("Value is too large, please try again");
-                } else if (value < -Float.MAX_VALUE){
+                } else if (value < -limit){
                     System.out.println("Value is too small, please try again");
                 } else {
                     loop = false;
