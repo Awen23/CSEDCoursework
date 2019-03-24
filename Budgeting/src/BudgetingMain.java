@@ -1,6 +1,5 @@
-import jdk.jfr.Category;
-
 import java.io.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
@@ -10,6 +9,7 @@ public class BudgetingMain {
     private float budget;
     private String timeUnits; //days, weeks, months, years
     private int timePeriod;
+    private LocalDate timeStart;
     private ArrayList<String> categories = new ArrayList<>();
 
     public BudgetingMain(){
@@ -388,7 +388,7 @@ public class BudgetingMain {
             }
             try {
                 timeUnits = input.readLine();
-                if (timeUnits != "day" && timeUnits != "week" && timeUnits != "month" && timeUnits != "year"){
+                if (!timeUnits.equals("day") && !timeUnits.equals("week") && !timeUnits.equals("month") && !timeUnits.equals("year")){
                     System.out.println("Time units not found - default time units in use");
                     timeUnits = "month";
                 }
@@ -401,6 +401,12 @@ public class BudgetingMain {
             } catch (NullPointerException | NumberFormatException e) {
                 System.out.println("Time period not found - default time period in use");
                 timePeriod = 1;
+            }
+            try {
+                timeStart = LocalDate.parse(input.readLine());
+            } catch (NullPointerException | NumberFormatException e) {
+                System.out.println("Start date not found - default start date in use");
+                timeStart = LocalDate.of(2019,1,1);
             }
 
             while (line != null) {
@@ -440,6 +446,7 @@ public class BudgetingMain {
             out.println(getBudget());
             out.println(getTimeUnits());
             out.println(getTimePeriod());
+            out.println(getTimeStart());
             for (String category:categories) {
                 out.println(category);
             }
@@ -455,7 +462,7 @@ public class BudgetingMain {
     protected void appendToSpendingHistoryFile(String category, Float amount){
         try {
             PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(new File("Budgeting\\SpendingHistory"),true)));
-            out.println(category+":"+amount+":"+ LocalDateTime.now());
+            out.println(category+";"+amount+";"+ LocalDateTime.now());
             out.close();
         }catch (FileNotFoundException e){
             System.out.println(e + "Unable to save");
@@ -493,6 +500,10 @@ public class BudgetingMain {
 
     protected int getTimePeriod(){
         return timePeriod;
+    }
+
+    protected LocalDate getTimeStart() {
+        return timeStart;
     }
 
 
