@@ -3,8 +3,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjuster;
-import java.util.ArrayList;
+import java.util.*;
 
 public class BudgetingMain {
     private String username;
@@ -27,7 +26,7 @@ public class BudgetingMain {
         displayAll();
 
         while (loop){
-            System.out.println("\n\nWhat would you like to do?: 1) view details 2) set up 3) adjust amount spent 4) save and exit");
+            System.out.println("\n\nWhat would you like to do?: 1) view details 2) set up 3) adjust amount spent 4) get categories in sorted order 5)save and exit");
             System.out.print("Option number: ");
             input = getInputFromConsole().trim();
             if(!input.isEmpty()) {
@@ -42,7 +41,10 @@ public class BudgetingMain {
                     case '3':
                         addToAmountSpent();
                         break;
-                    case '4':
+                    case'4':
+                        sortCategoriesAfter(budgetStart.atTime(23,59,59));
+                        break;
+                    case '5':
                         saveToInformationFile();
                         System.exit(0);
                         break;
@@ -471,6 +473,31 @@ public class BudgetingMain {
         }
     }
 
+    protected ArrayList<Expenditure> getExpendituresBetween(LocalDateTime start, LocalDateTime end){
+        ArrayList<Expenditure> expenditures = new ArrayList<>();
+        File historyFile = new File("Budgeting\\SpendingHistory");
+        String line = "Uh oh"; //compiler needed something
+
+        try {
+            FileReader fileIn = new FileReader(historyFile);
+            BufferedReader input = new BufferedReader(fileIn);
+
+            while (line != null) {
+                line = input.readLine(); //read requested line
+                if (line != null) {
+                    String[] details = line.split(";");
+                    LocalDateTime expenditureDate = LocalDateTime.parse(details[2]);
+                    if (expenditureDate.isAfter(start) && expenditureDate.isBefore(end)) {
+                        expenditures.add(new Expenditure(details[0], Float.parseFloat(details[1]), expenditureDate));
+                    }
+                }
+            }
+        }catch (IOException e){
+            System.out.println("History file not found");
+        }
+        return expenditures;
+    }
+
 
     private void displayAll(){
         System.out.printf("\nHello %s!", getUsername());
@@ -525,29 +552,44 @@ public class BudgetingMain {
         System.out.printf("You have a target to stay under £%.2f this week, you have spent £%.2f so far.",weeklyTarget, spentThisWeek);
     }
 
-    protected ArrayList<Expenditure> getExpendituresBetween(LocalDateTime start, LocalDateTime end){
-        ArrayList<Expenditure> expenditures = new ArrayList<>();
-        File historyFile = new File("Budgeting\\SpendingHistory");
-        String line = "Uh oh"; //compiler needed something
-
-        try {
-            FileReader fileIn = new FileReader(historyFile);
-            BufferedReader input = new BufferedReader(fileIn);
-
-            while (line != null) {
-                line = input.readLine(); //read requested line
-                if (line != null) {
-                    String[] details = line.split(";");
-                    LocalDateTime expenditureDate = LocalDateTime.parse(details[2]);
-                    if (expenditureDate.isAfter(start) && expenditureDate.isBefore(end)) {
-                        expenditures.add(new Expenditure(details[0], Float.parseFloat(details[1]), expenditureDate));
-                    }
-                }
-            }
-        }catch (IOException e){
-                System.out.println("History file not found");
+    private void sortCategoriesAfter(LocalDateTime start){
+        ArrayList<Expenditure> expenditures = getExpendituresBetween(start, LocalDateTime.now());
+        HashMap<String, Float> categoryValues = new HashMap();
+        for (String category:categories) {
+            categoryValues.put(category, new Float(0)); //intellij says this isn't needed but apparently it is
         }
-        return expenditures;
+        for (Expenditure expense:expenditures) {
+            categoryValues.replace(expense.getCategory(),categoryValues.get(expense.getCategory()) + expense.getAmount());
+        }
+
+        Map<String, Float> sorted = sortByValue(categoryValues);
+
+        System.out.println();
+        for (String key:sorted.keySet()) {
+            System.out.println(key+":"+categoryValues.get(key));
+        }
+
+
+    }
+
+    //Hashmap sorting code found at https://www.geeksforgeeks.org/sorting-a-hashmap-according-to-values/
+    public static HashMap<String, Float> sortByValue(HashMap<String, Float> map) {
+        // Create a list from elements of HashMap
+        List<Map.Entry<String, Float> > list = new LinkedList<Map.Entry<String, Float> >(map.entrySet());
+
+        // Sort the list
+        Collections.sort(list, new Comparator<Map.Entry<String, Float> >() {
+            public int compare(Map.Entry<String, Float> entry1, Map.Entry<String, Float> entry2){
+                return (entry2.getValue()).compareTo(entry1.getValue()); //entry2 first for descending
+            }
+        });
+
+        // put data from sorted list to hashmap
+        HashMap<String, Float> temp = new LinkedHashMap<String, Float>();
+        for (Map.Entry<String, Float> aa : list) {
+            temp.put(aa.getKey(), aa.getValue());
+        }
+        return temp;
     }
 
 
