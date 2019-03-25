@@ -1,6 +1,9 @@
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
 import java.util.ArrayList;
 
 public class BudgetingMain {
@@ -9,7 +12,7 @@ public class BudgetingMain {
     private float budget;
     private String timeUnits; //days, weeks, months, years
     private int timePeriod;
-    private LocalDate timeStart;
+    private LocalDate budgetStart;
     private ArrayList<String> categories = new ArrayList<>();
 
     public BudgetingMain(){
@@ -403,10 +406,10 @@ public class BudgetingMain {
                 timePeriod = 1;
             }
             try {
-                timeStart = LocalDate.parse(input.readLine());
+                budgetStart = LocalDate.parse(input.readLine());
             } catch (NullPointerException | NumberFormatException e) {
                 System.out.println("Start date not found - default start date in use");
-                timeStart = LocalDate.of(2019,1,1);
+                budgetStart = LocalDate.of(2019,1,1);
             }
 
             while (line != null) {
@@ -446,7 +449,7 @@ public class BudgetingMain {
             out.println(getBudget());
             out.println(getTimeUnits());
             out.println(getTimePeriod());
-            out.println(getTimeStart());
+            out.println(getBudgetStart());
             for (String category:categories) {
                 out.println(category);
             }
@@ -477,8 +480,77 @@ public class BudgetingMain {
         System.out.printf("\nYour Budget is:\t%.2f", getBudget());
         System.out.printf("\nYou have spent:\t%.2f", getAmountSpent());
         System.out.printf("\nYour balance:\t%.2f", getBudget()-getAmountSpent());
-        System.out.printf("\nYour budget refreshes every:\t%d %s", getTimePeriod(), (getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s');
+        System.out.printf("\nYour budget refreshes every:\t%d %s\n", getTimePeriod(), (getTimePeriod()==1)?getTimeUnits():getTimeUnits()+'s');
+        displayWeeklyTarget();
         viewCategories();
+    }
+
+    private void displayWeeklyTarget(){
+        LocalDate current = LocalDate.now();
+        LocalDate endDate;
+        switch (getTimeUnits()){
+            case "day":
+                endDate = budgetStart.plusDays(timePeriod);
+                while (endDate.isBefore(current)){
+                    endDate = endDate.plusDays(timePeriod);
+                }
+                break;
+            case "week":
+                endDate = budgetStart.plusWeeks(timePeriod);
+                while (endDate.isBefore(current)){
+                    endDate = endDate.plusWeeks(timePeriod);
+                }
+                break;
+            case "month":
+                endDate = budgetStart.plusMonths(timePeriod);
+                while (endDate.isBefore(current)){
+                    endDate = endDate.plusMonths(timePeriod);
+                }
+                break;
+            case "year":
+                endDate = budgetStart.plusYears(timePeriod);
+                while (endDate.isBefore(current)){
+                    endDate = endDate.plusYears(timePeriod);
+                }
+                break;
+            default:
+                endDate = budgetStart.plusMonths(1);
+        }
+
+        ArrayList<Expenditure> thisWeekExpenditures = getExpendituresBetween(current.with(ChronoField.DAY_OF_WEEK,1).atStartOfDay(), LocalDateTime.now()); //finds the date of the first of this week
+
+        float spentThisWeek = 0;
+        for (Expenditure expense:thisWeekExpenditures) {
+            spentThisWeek += expense.getAmount();
+        }
+
+        float weeklyTarget = (getBudget()-getAmountSpent()+spentThisWeek)/(Math.floorDiv(ChronoUnit.DAYS.between(current,endDate),7) + 1);
+        System.out.printf("You have a target to stay under £%.2f this week, you have spent £%.2f so far.",weeklyTarget, spentThisWeek);
+    }
+
+    protected ArrayList<Expenditure> getExpendituresBetween(LocalDateTime start, LocalDateTime end){
+        ArrayList<Expenditure> expenditures = new ArrayList<>();
+        File historyFile = new File("Budgeting\\SpendingHistory");
+        String line = "Uh oh"; //compiler needed something
+
+        try {
+            FileReader fileIn = new FileReader(historyFile);
+            BufferedReader input = new BufferedReader(fileIn);
+
+            while (line != null) {
+                line = input.readLine(); //read requested line
+                if (line != null) {
+                    String[] details = line.split(";");
+                    LocalDateTime expenditureDate = LocalDateTime.parse(details[2]);
+                    if (expenditureDate.isAfter(start) && expenditureDate.isBefore(end)) {
+                        expenditures.add(new Expenditure(details[0], Float.parseFloat(details[1]), expenditureDate));
+                    }
+                }
+            }
+        }catch (IOException e){
+                System.out.println("History file not found");
+        }
+        return expenditures;
     }
 
 
@@ -502,8 +574,8 @@ public class BudgetingMain {
         return timePeriod;
     }
 
-    protected LocalDate getTimeStart() {
-        return timeStart;
+    protected LocalDate getBudgetStart() {
+        return budgetStart;
     }
 
 
