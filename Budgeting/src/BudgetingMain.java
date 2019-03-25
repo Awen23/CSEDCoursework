@@ -1,6 +1,7 @@
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -406,7 +407,7 @@ public class BudgetingMain {
             }
             try {
                 budgetStart = LocalDate.parse(input.readLine());
-            } catch (NullPointerException | NumberFormatException e) {
+            } catch (NullPointerException | DateTimeParseException e) {
                 System.out.println("Start date not found - default start date in use");
                 budgetStart = LocalDate.of(2019,1,1);
             }
@@ -433,6 +434,7 @@ public class BudgetingMain {
             budget = 500;
             timeUnits = "month";
             timePeriod = 1;
+            budgetStart = LocalDate.of(2019,1,1);
             addCategoryParameter("Food");
             addCategoryParameter("Entertainment");
             addCategoryParameter("Study");
