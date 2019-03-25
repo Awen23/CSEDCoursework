@@ -224,6 +224,7 @@ public class BudgetingMain {
         String tempCategory;
         System.out.print("New category name: ");
         tempCategory = validateInputString();
+        tempCategory = tempCategory.substring(0,1).toUpperCase() + tempCategory.substring(1).toLowerCase();
         if (!categories.contains(tempCategory)){
             categories.add(tempCategory);
             saveToInformationFile();
