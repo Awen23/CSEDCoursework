@@ -488,9 +488,11 @@ public class BudgetingMain {
                 line = input.readLine(); //read requested line
                 if (line != null) {
                     String[] details = line.split(";");
-                    LocalDateTime expenditureDate = LocalDateTime.parse(details[2]);
-                    if (expenditureDate.isAfter(start) && expenditureDate.isBefore(end)) {
-                        expenditures.add(new Expenditure(details[0], Float.parseFloat(details[1]), expenditureDate));
+                    if (details.length == 3) {
+                        LocalDateTime expenditureDate = LocalDateTime.parse(details[2]);
+                        if (expenditureDate.isAfter(start) && expenditureDate.isBefore(end)) {
+                            expenditures.add(new Expenditure(details[0], Float.parseFloat(details[1]), expenditureDate));
+                        }
                     }
                 }
             }
