@@ -20,7 +20,8 @@ public class BudgetingMain {
     }
 
     private void run(){
-        new MainMenu().mainMenu();
+        //new MainMenu().mainMenu();
+        new MainMenu().draw();
     }
 
     private void readFromFile(){

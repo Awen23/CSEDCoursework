@@ -1,11 +1,19 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.List;
 
 public class MainMenu {
+    public JFrame mainFrame;
 
     public MainMenu(){
 
@@ -49,6 +57,125 @@ public class MainMenu {
         }
     }
 
+    public void draw(){
+        mainFrame = new JFrame("Budgeting Application");
+        mainFrame.setSize(500,800);
+        mainFrame.setLocationRelativeTo(null);
+        mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        mainFrame.addWindowListener(new WindowAdapter() { //allows saving when the window is closed via the x
+            @Override
+            public void windowClosing(WindowEvent event) {
+                BudgetingMain.saveToInformationFile();
+                mainFrame.dispose();
+                System.exit(0);
+            }
+        });
+
+        mainFrame.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+
+        JLabel welcomeMessage = new JLabel("Hello, " + BudgetingMain.getUsername());
+        c.gridwidth = 2;
+        c.gridx = 0;
+        c.gridy = 0;
+        mainFrame.add(welcomeMessage, c);
+
+        JPanel pieArea = new JPanel();
+        pieArea.setPreferredSize(new Dimension(500,500));
+        c.gridwidth = 4;
+        c.gridx = 0;
+        c.gridy = 1;
+        mainFrame.add(pieArea, c);
+
+        JButton butSetup = new JButton("Setup");
+        butSetup.setPreferredSize(new Dimension(100,100));
+        butSetup.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainFrame.setVisible(false);
+                new SetupMenu(mainFrame).draw();
+            }
+        });
+        c.gridwidth = 1;
+        c.gridx = 0;
+        c.gridy = 2;
+        mainFrame.add(butSetup, c);
+
+        JButton butAddSpent = new JButton("Input Amount Spent");
+        butAddSpent.setPreferredSize(new Dimension(100,100));
+        butAddSpent.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JTextField textInput = new JTextField();
+                textInput.setPreferredSize(new Dimension(100,25));
+                JComboBox<String> comboBox = new JComboBox(BudgetingMain.getCategories().toArray());
+                comboBox.setEditable(false);
+                JPanel amountSpentPanel = new JPanel();
+                amountSpentPanel.add(textInput);
+                amountSpentPanel.add(comboBox);
+                int result = 2; //2 means cancelled
+                double tempSpent = 0;
+                do {
+                    result = JOptionPane.showConfirmDialog(null, amountSpentPanel, "Add to amount spent", JOptionPane.OK_CANCEL_OPTION);
+                    if (result != JOptionPane.OK_OPTION){
+                        break;
+                    }
+                    try {
+                        tempSpent = Math.round(Float.parseFloat(textInput.getText()) * 100.0) / 100.0;
+                        if (tempSpent <= 0){
+                            JOptionPane.showConfirmDialog(null, "Input must be greater than 0.01", "", JOptionPane.DEFAULT_OPTION);
+
+                        }
+                    } catch (NumberFormatException ex){
+                        tempSpent = 0;
+                        JOptionPane.showConfirmDialog(null, "Input must be a number", "", JOptionPane.DEFAULT_OPTION);
+                    }
+                } while(tempSpent <= 0 || result != JOptionPane.OK_OPTION);
+
+                if (result == JOptionPane.OK_OPTION) {
+                    addToAmountSpentParam(comboBox.getSelectedItem().toString() , (float) tempSpent);
+                    System.out.println("haha");
+                }
+            }
+        });
+        c.gridwidth = 1;
+        c.gridx = 1;
+        c.gridy = 2;
+        mainFrame.add(butAddSpent, c);
+
+        JButton butGoal = new JButton("Data Trends");
+        butGoal.setPreferredSize(new Dimension(100,100));
+        butGoal.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainFrame.setVisible(false);
+                new DataTrendsMenu().draw();
+                mainFrame.setVisible(true);
+            }
+        });
+        c.gridwidth = 1;
+        c.gridx = 2;
+        c.gridy = 2;
+        mainFrame.add(butGoal, c);
+
+        JButton butSaveExit = new JButton("Save and Exit");
+        butSaveExit.setPreferredSize(new Dimension(100,100));
+        butSaveExit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BudgetingMain.saveToInformationFile();
+                mainFrame.dispose();
+                System.exit(0);
+            }
+        });
+        c.gridwidth = 1;
+        c.gridx = 3;
+        c.gridy = 2;
+        mainFrame.add(butSaveExit, c);
+
+        mainFrame.setVisible(true);
+    }
+
     protected void addToAmountSpent(){
         String inputCategory;
         double tempSpent;
@@ -74,9 +201,13 @@ public class MainMenu {
             }
         } while (tempSpent <= 0);
         System.out.println("You spent "+tempSpent+" on "+inputCategory);
-        appendToSpendingHistoryFile(inputCategory,(float) tempSpent);
-        BudgetingMain.setAmountSpent(BudgetingMain.getAmountSpent() + (float) tempSpent);
+        addToAmountSpentParam(inputCategory, (float) tempSpent);
         System.out.printf("You have spent a total of:\t%.2f", BudgetingMain.getAmountSpent());
+    }
+
+    private void addToAmountSpentParam(String category,float spent){
+        appendToSpendingHistoryFile(category, spent);
+        BudgetingMain.setAmountSpent(BudgetingMain.getAmountSpent() + spent);
     }
 
     protected void appendToSpendingHistoryFile(String category, Float amount){
@@ -98,11 +229,11 @@ public class MainMenu {
         System.out.printf("\nYou have spent:\t%.2f", BudgetingMain.getAmountSpent());
         System.out.printf("\nYour balance:\t%.2f", BudgetingMain.getBudget()- BudgetingMain.getAmountSpent());
         System.out.printf("\nYour budget refreshes every:\t%d %s\n", BudgetingMain.getTimePeriod(), (BudgetingMain.getTimePeriod()==1)? BudgetingMain.getTimeUnits():BudgetingMain.getTimeUnits()+'s');
-        displayWeeklyTarget();
+        System.out.println(returnWeeklyTarget());
         BudgetingMain.viewCategories();
     }
 
-    private void displayWeeklyTarget(){
+    private String returnWeeklyTarget(){
         LocalDate budgetStart = BudgetingMain.getBudgetStart();
         int timePeriod = BudgetingMain.getTimePeriod();
 
@@ -145,7 +276,7 @@ public class MainMenu {
         }
 
         float weeklyTarget = (BudgetingMain.getBudget()- BudgetingMain.getAmountSpent()+spentThisWeek)/(Math.floorDiv(ChronoUnit.DAYS.between(current,endDate),7) + 1);
-        System.out.printf("You have a target to stay under £%.2f this week, you have spent £%.2f so far.",weeklyTarget, spentThisWeek);
+        return String.format("You have a target to stay under £%.2f this week, you have spent £%.2f so far.",weeklyTarget, spentThisWeek);
     }
 
     private void sortCategoriesAfter(LocalDateTime start){

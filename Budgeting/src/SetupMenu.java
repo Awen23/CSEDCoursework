@@ -1,7 +1,16 @@
+import javax.swing.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 public class SetupMenu {
+    private JFrame mainFrame;
 
     public SetupMenu(){
 
+    }
+
+    public SetupMenu(JFrame mainFrame){
+        this.mainFrame = mainFrame;
     }
 
 
@@ -41,6 +50,25 @@ public class SetupMenu {
                 System.out.println("Invalid input, please try again!");
             }
         }
+    }
+
+    public void draw(){
+        JFrame setupFrame = new JFrame();
+        setupFrame.setSize(800,500);
+        setupFrame.setLocationRelativeTo(null);
+        setupFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        setupFrame.addWindowListener(new WindowAdapter() { //allows saving when the window is closed via the x
+            @Override
+            public void windowClosing(WindowEvent event) {
+                BudgetingMain.saveToInformationFile();
+                mainFrame.setVisible(true);
+                setupFrame.dispose();
+            }
+        });
+
+
+
+        setupFrame.setVisible(true);
     }
 
     private void changeUsername(){
