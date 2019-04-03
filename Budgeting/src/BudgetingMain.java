@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -79,9 +80,9 @@ public class BudgetingMain {
             }
             if (categories.size() == 0){
                 System.out.println("Categories is empty - adding default categories");
-                addCategoryParameter("Food");
-                addCategoryParameter("Entertainment");
-                addCategoryParameter("Study");
+                addCategoryParameter("Food", false);
+                addCategoryParameter("Entertainment", false);
+                addCategoryParameter("Study", false);
             }
             input.close(); //close the readers
             saveToInformationFile();
@@ -94,13 +95,12 @@ public class BudgetingMain {
             timeUnits = "month";
             timePeriod = 1;
             budgetStart = LocalDate.of(2019,1,1);
-            addCategoryParameter("Food");
-            addCategoryParameter("Entertainment");
-            addCategoryParameter("Study");
+            addCategoryParameter("Food", false);
+            addCategoryParameter("Entertainment", false);
+            addCategoryParameter("Study",false);
             saveToInformationFile();
         }
     }
-
 
 
     public static boolean areYouSure(String messageEnd){
@@ -118,6 +118,7 @@ public class BudgetingMain {
         } while(!response.equals("Yes") && !response.equals("No"));
         return response.equals("Yes");
     }
+
 
 
     public static String getInputFromConsole() {
@@ -140,16 +141,22 @@ public class BudgetingMain {
         }
     }
 
+
     public static String validateInputString() {
         String s;
         do {
             s = getInputFromConsole().trim();
-            if (!s.matches("^[a-zA-Z0-9 ]+")) {
+            if (!validateString(s)) {
                 System.out.println("Invalid input, please try again!");
             }
-        } while (!s.matches("^[a-zA-Z0-9 ]+"));
+        } while (!validateString(s));
         return s;
     }
+
+    public static Boolean validateString(String s){
+        return s.matches("^[a-zA-Z0-9 ]+");
+    }
+
 
     public static float validateInputStringToFloat(){
         final float limit = 1000000000;
@@ -195,6 +202,28 @@ public class BudgetingMain {
         } while (loop);
         return value;
     }
+
+    public static boolean validateStringToNumberGUI(String input){
+        final float limit = 1000000000;
+        float value = 0;
+        try {
+            value = Float.parseFloat(input);
+            if (value > limit){
+                JOptionPane.showConfirmDialog(null, "Value is too large, please try again", "", JOptionPane.DEFAULT_OPTION);
+            } else if (value < -limit){
+                JOptionPane.showConfirmDialog(null, "Value is too small, please try again", "", JOptionPane.DEFAULT_OPTION);
+            } else {
+                return true;
+            }
+            return false;
+        }
+        catch(NumberFormatException e){
+            JOptionPane.showConfirmDialog(null, "Input must be number", "", JOptionPane.DEFAULT_OPTION);
+            return false;
+        }
+    }
+
+
 
     public static ArrayList<Expenditure> getExpendituresBetween(LocalDateTime start, LocalDateTime end){
         ArrayList<Expenditure> expenditures = new ArrayList<>();
@@ -308,19 +337,31 @@ public class BudgetingMain {
         return categories;
     }
 
-    public static void addCategoryParameter(String s){
+    public static void addCategoryParameter(String s, Boolean GUI){
         if (!categories.contains(s)){
             categories.add(s);
             saveToInformationFile();
         } else{
-            System.out.println("Category already exists");
+            if (GUI){
+                JOptionPane.showConfirmDialog(null, "Category already exists", "", JOptionPane.DEFAULT_OPTION);
+            } else {
+                System.out.println("Category already exists");
+            }
         }
     }
 
-    public static void removeCategoryParameter(String s){
+    public static void removeCategoryParameter(String s, boolean GUI){
         if (categories.contains(s)){
-            categories.remove(s);
-            saveToInformationFile();
+            if (categories.size() > 1) {
+                categories.remove(s);
+                saveToInformationFile();
+            } else {
+                if(GUI){
+                    JOptionPane.showConfirmDialog(null, "Cannot remove last category", "", JOptionPane.DEFAULT_OPTION);
+                } else {
+                    System.out.println("Cannot remove last category");
+                }
+            }
         } else{
             System.out.println("Category doesn't exist");
         }

@@ -176,7 +176,7 @@ public class MainMenu {
         mainFrame.setVisible(true);
     }
 
-    protected void addToAmountSpent(){
+    private void addToAmountSpent(){
         String inputCategory;
         double tempSpent;
         System.out.print("Which category is the expenditure in? ");
@@ -186,7 +186,7 @@ public class MainMenu {
             if (!BudgetingMain.getCategories().contains(inputCategory)){
                 System.out.println(inputCategory + " is not an existing category, would you like to add "+inputCategory+" to the list of categories? ");
                 if (BudgetingMain.YesNo()){
-                    BudgetingMain.addCategoryParameter(inputCategory);
+                    BudgetingMain.addCategoryParameter(inputCategory, false);
                 }else {
                     System.out.print("\nWhich category is the expenditure in? ");
                 }
@@ -210,7 +210,8 @@ public class MainMenu {
         BudgetingMain.setAmountSpent(BudgetingMain.getAmountSpent() + spent);
     }
 
-    protected void appendToSpendingHistoryFile(String category, Float amount){
+
+    private void appendToSpendingHistoryFile(String category, Float amount){
         try {
             PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(new File("Budgeting\\SpendingHistory"),true)));
             out.println(category+";"+amount+";"+ LocalDateTime.now());
