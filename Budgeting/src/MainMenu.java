@@ -87,20 +87,6 @@ public class MainMenu {
         c.gridy = 1;
         mainFrame.add(pieArea, c);
 
-        JButton butSetup = new JButton("Setup");
-        butSetup.setPreferredSize(new Dimension(100,100));
-        butSetup.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mainFrame.setVisible(false);
-                new SetupMenu(mainFrame).draw();
-            }
-        });
-        c.gridwidth = 1;
-        c.gridx = 0;
-        c.gridy = 2;
-        mainFrame.add(butSetup, c);
-
         JButton butAddSpent = new JButton("Input Amount Spent");
         butAddSpent.setPreferredSize(new Dimension(100,100));
         butAddSpent.addActionListener(new ActionListener() {
@@ -138,14 +124,28 @@ public class MainMenu {
                 }
             }
         });
-        c.gridwidth = 1;
         c.gridx = 1;
         c.gridy = 2;
+        c.gridwidth = 2;
         mainFrame.add(butAddSpent, c);
 
-        JButton butGoal = new JButton("Data Trends");
-        butGoal.setPreferredSize(new Dimension(100,100));
-        butGoal.addActionListener(new ActionListener() {
+        JButton butSetup = new JButton("Setup");
+        butSetup.setPreferredSize(new Dimension(100,100));
+        butSetup.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mainFrame.setVisible(false);
+                new SetupMenu(mainFrame).draw();
+            }
+        });
+        c.gridwidth = 1;
+        c.gridx = 0;
+        c.gridy = 3;
+        mainFrame.add(butSetup, c);
+
+        JButton butDataTrends = new JButton("Data Trends");
+        butDataTrends.setPreferredSize(new Dimension(100,100));
+        butDataTrends.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 mainFrame.setVisible(false);
@@ -154,8 +154,21 @@ public class MainMenu {
             }
         });
         c.gridwidth = 1;
+        c.gridx = 1;
+        c.gridy = 3;
+        mainFrame.add(butDataTrends, c);
+
+        JButton butGoal = new JButton("Current Goal");
+        butGoal.setPreferredSize(new Dimension(100,100));
+        butGoal.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showConfirmDialog(null, returnWeeklyTarget(), "Current Goal", JOptionPane.DEFAULT_OPTION);
+            }
+        });
+        c.gridwidth = 1;
         c.gridx = 2;
-        c.gridy = 2;
+        c.gridy = 3;
         mainFrame.add(butGoal, c);
 
         JButton butSaveExit = new JButton("Save and Exit");
@@ -170,7 +183,7 @@ public class MainMenu {
         });
         c.gridwidth = 1;
         c.gridx = 3;
-        c.gridy = 2;
+        c.gridy = 3;
         mainFrame.add(butSaveExit, c);
 
         mainFrame.setVisible(true);
