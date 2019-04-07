@@ -146,7 +146,6 @@ public class MainMenu {
                 if (result == JOptionPane.OK_OPTION) {
                     addToAmountSpentParam(comboBox.getSelectedItem().toString() , (float) tempSpent);
                     dataset = createDataset();
-                    
                 }
             }
         });

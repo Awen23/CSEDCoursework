@@ -94,7 +94,7 @@ public class DataTrendsMenu {
             series.add(new TimeSeries(category));
         }
 
-        for (LocalDate i = BudgetingMain.getBudgetStart(); i.isBefore(LocalDate.now()); i = i.plusDays(1)) {
+        for (LocalDate i = BudgetingMain.getBudgetStart(); i.isBefore(LocalDate.now().plusDays(1)); i = i.plusDays(1)) {
             //total = 0;
             for (String category:BudgetingMain.getCategories()) {
                 categoryTotals.put(category, new Float(0));
