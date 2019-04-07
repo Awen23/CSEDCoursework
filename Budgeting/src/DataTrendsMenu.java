@@ -2,6 +2,10 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.time.Day;
+import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
 import java.awt.*;
@@ -14,6 +18,8 @@ import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+//graph adapted from https://www.boraji.com/jfreechart-time-series-chart-example
 
 public class DataTrendsMenu {
     private JFrame mainFrame;
@@ -44,8 +50,8 @@ public class DataTrendsMenu {
         trendsFrame.setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
 
-        DefaultCategoryDataset dataset = createDataset();
-        JFreeChart chart = ChartFactory.createLineChart("Expenses Per Day", "Date","Amount spent (£)", dataset);
+        XYDataset dataset = createDataset();
+        JFreeChart chart = ChartFactory.createTimeSeriesChart("Expenses Per Day", "Date","Amount spent (£)", dataset);
         ChartPanel chartPanel = new ChartPanel(chart);
         c.gridwidth = 0;
         c.gridx = 0;
@@ -74,37 +80,47 @@ public class DataTrendsMenu {
     }
 
 
-    private DefaultCategoryDataset createDataset(){
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+    private XYDataset createDataset(){
+        TimeSeriesCollection dataset = new TimeSeriesCollection();
         ArrayList<Expenditure> expenses = BudgetingMain.getExpendituresBetween(BudgetingMain.getBudgetStart().atStartOfDay(), LocalDateTime.now());
         Map<String, Float> categoryTotals = new HashMap<>();
-        float daytotal = 0;
+        float total = 0;
+
+        ArrayList<TimeSeries> series = new ArrayList<>();
+        series.add(new TimeSeries("Cumulative Total"));
 
         for (String category:BudgetingMain.getCategories()) {
             categoryTotals.put(category, new Float(0));
+            series.add(new TimeSeries(category));
         }
 
         for (LocalDate i = BudgetingMain.getBudgetStart(); i.isBefore(LocalDate.now()); i = i.plusDays(1)) {
-            //daytotal = 0;
+            //total = 0;
             for (String category:BudgetingMain.getCategories()) {
                 categoryTotals.put(category, new Float(0));
             }
             for (Expenditure e:expenses) {
-                System.out.println(e.getDatetime()+" : "+i);
+//                System.out.println(e.getDatetime()+" : "+i);
                 if (e.getDatetime().toLocalDate().isEqual(i)){
-                    System.out.println("yes");
+//                    System.out.println("yes");
                     if (categoryTotals.keySet().contains(e.getCategory())){
                         categoryTotals.put(e.getCategory(),categoryTotals.get(e.getCategory()) + e.getAmount());
                     } else {
                         categoryTotals.put(e.getCategory(), e.getAmount());
                     }
-                    daytotal += e.getAmount();
+                    total += e.getAmount();
                 }
             }
-            for (String key:categoryTotals.keySet()) {
-                dataset.addValue(categoryTotals.get(key),key,i);
+            series.get(0).add(new Day(i.getDayOfMonth(),i.getMonthValue(),i.getYear()),total);
+
+            for (TimeSeries t:series) {
+                if (!t.getKey().equals("Cumulative Total")){
+                    t.add(new Day(i.getDayOfMonth(), i.getMonthValue(), i.getYear()), categoryTotals.get(t.getKey()));
+                }
             }
-            dataset.addValue(daytotal,"Cumulative Total",i);
+        }
+        for (TimeSeries t:series) {
+            dataset.addSeries(t);
         }
         return dataset;
 

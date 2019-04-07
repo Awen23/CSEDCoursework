@@ -1,3 +1,4 @@
+import com.sun.tools.javac.Main;
 import jdk.jfr.Category;
 
 import javax.swing.*;
@@ -67,7 +68,8 @@ public class SetupMenu {
             @Override
             public void windowClosing(WindowEvent event) {
                 BudgetingMain.saveToInformationFile();
-                mainFrame.setVisible(true);
+//                mainFrame.setVisible(true);
+                new MainMenu().draw();
                 setupFrame.dispose();
             }
         });
