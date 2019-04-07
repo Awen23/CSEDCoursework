@@ -1,16 +1,30 @@
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.labels.PieSectionLabelGenerator;
+import org.jfree.chart.labels.StandardPieSectionLabelGenerator;
+import org.jfree.chart.plot.PiePlot;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.general.PieDataset;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.ColorModel;
 import java.io.*;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.List;
+
 
 public class MainMenu {
     public JFrame mainFrame;
@@ -42,7 +56,11 @@ public class MainMenu {
                         addToAmountSpent();
                         break;
                     case'4':
-                        sortCategoriesAfter(BudgetingMain.getBudgetStart().atTime(23,59,59));
+                        Map<String, Float> sorted = BudgetingMain.sortCategoriesAfter(BudgetingMain.getBudgetStart().atStartOfDay());
+                        System.out.println();
+                        for (String key:sorted.keySet()) {
+                            System.out.println(key+":"+sorted.get(key));
+                        }
                         break;
                     case '5':
                         BudgetingMain.saveToInformationFile();
@@ -59,7 +77,7 @@ public class MainMenu {
 
     public void draw(){
         mainFrame = new JFrame("Budgeting Application");
-        mainFrame.setSize(500,800);
+        mainFrame.setSize(800,800);
         mainFrame.setLocationRelativeTo(null);
         mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         mainFrame.addWindowListener(new WindowAdapter() { //allows saving when the window is closed via the x
@@ -80,15 +98,21 @@ public class MainMenu {
         c.gridy = 0;
         mainFrame.add(welcomeMessage, c);
 
-        JPanel pieArea = new JPanel();
-        pieArea.setPreferredSize(new Dimension(500,500));
+        PieDataset dataset = createDataset();
+        JFreeChart chart = ChartFactory.createPieChart("Total Budget: £"+BudgetingMain.getBudget(), dataset, true, true, false);
+        PieSectionLabelGenerator labelGenerator = new StandardPieSectionLabelGenerator("{0} : £{1} ({2})", new DecimalFormat("0.00"), new DecimalFormat("0%"));
+        ((PiePlot) chart.getPlot()).setLabelGenerator(labelGenerator);
+        ChartPanel piePanel = new ChartPanel(chart);
         c.gridwidth = 4;
         c.gridx = 0;
         c.gridy = 1;
-        mainFrame.add(pieArea, c);
+        c.ipady = 400;
+        c.ipadx = 400;
+        c.fill = GridBagConstraints.BOTH;
+        mainFrame.add(piePanel, c);
 
         JButton butAddSpent = new JButton("Input Amount Spent");
-        butAddSpent.setPreferredSize(new Dimension(100,100));
+        butAddSpent.setPreferredSize(new Dimension(600,100));
         butAddSpent.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -120,17 +144,18 @@ public class MainMenu {
 
                 if (result == JOptionPane.OK_OPTION) {
                     addToAmountSpentParam(comboBox.getSelectedItem().toString() , (float) tempSpent);
-                    System.out.println("haha");
                 }
             }
         });
         c.gridx = 1;
         c.gridy = 2;
         c.gridwidth = 2;
+        c.ipadx = 0;
+        c.ipady = 0;
         mainFrame.add(butAddSpent, c);
 
         JButton butSetup = new JButton("Setup");
-        butSetup.setPreferredSize(new Dimension(100,100));
+        butSetup.setPreferredSize(new Dimension(300,100));
         butSetup.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -141,25 +166,26 @@ public class MainMenu {
         c.gridwidth = 1;
         c.gridx = 0;
         c.gridy = 3;
+        c.weightx = 0.3;
         mainFrame.add(butSetup, c);
 
         JButton butDataTrends = new JButton("Data Trends");
-        butDataTrends.setPreferredSize(new Dimension(100,100));
+        butDataTrends.setPreferredSize(new Dimension(300,100));
         butDataTrends.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 mainFrame.setVisible(false);
-                new DataTrendsMenu().draw();
-                mainFrame.setVisible(true);
+                new DataTrendsMenu(mainFrame).draw();
             }
         });
         c.gridwidth = 1;
         c.gridx = 1;
         c.gridy = 3;
+        c.weightx = 0.5;
         mainFrame.add(butDataTrends, c);
 
         JButton butGoal = new JButton("Current Goal");
-        butGoal.setPreferredSize(new Dimension(100,100));
+        butGoal.setPreferredSize(new Dimension(300,100));
         butGoal.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -169,10 +195,11 @@ public class MainMenu {
         c.gridwidth = 1;
         c.gridx = 2;
         c.gridy = 3;
+        c.weightx = 0.5;
         mainFrame.add(butGoal, c);
 
         JButton butSaveExit = new JButton("Save and Exit");
-        butSaveExit.setPreferredSize(new Dimension(100,100));
+        butSaveExit.setPreferredSize(new Dimension(300,100));
         butSaveExit.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -184,6 +211,7 @@ public class MainMenu {
         c.gridwidth = 1;
         c.gridx = 3;
         c.gridy = 3;
+        c.weightx = 0.3;
         mainFrame.add(butSaveExit, c);
 
         mainFrame.setVisible(true);
@@ -236,6 +264,17 @@ public class MainMenu {
         }
     }
 
+    private PieDataset createDataset(){
+        DefaultPieDataset dataset = new DefaultPieDataset();
+
+        Map<String, Float> sortedCategories = BudgetingMain.sortCategoriesAfter(BudgetingMain.getBudgetStart().atStartOfDay());
+        for (String key:sortedCategories.keySet()) {
+            dataset.setValue(key, sortedCategories.get(key));
+        }
+        dataset.setValue("Free", BudgetingMain.getBudget()-BudgetingMain.getAmountSpent());
+
+        return dataset;
+    }
 
     private void displayAll(){
         System.out.printf("\nHello %s!", BudgetingMain.getUsername());
@@ -293,44 +332,6 @@ public class MainMenu {
         return String.format("You have a target to stay under £%.2f this week, you have spent £%.2f so far.",weeklyTarget, spentThisWeek);
     }
 
-    private void sortCategoriesAfter(LocalDateTime start){
-        ArrayList<Expenditure> expenditures = BudgetingMain.getExpendituresBetween(start, LocalDateTime.now());
-        HashMap<String, Float> categoryValues = new HashMap();
-
-        for (String category:BudgetingMain.getCategories()) {
-            categoryValues.put(category, new Float(0)); //intellij says this isn't needed but apparently it is
-        }
-        for (Expenditure expense:expenditures) {
-            categoryValues.replace(expense.getCategory(),categoryValues.get(expense.getCategory()) + expense.getAmount());
-        }
-
-        Map<String, Float> sorted = sortByValue(categoryValues);
-
-        System.out.println();
-        for (String key:sorted.keySet()) {
-            System.out.println(key+":"+categoryValues.get(key));
-        }
 
 
-    }
-
-    //Hashmap sorting code found at https://www.geeksforgeeks.org/sorting-a-hashmap-according-to-values/
-    public static HashMap<String, Float> sortByValue(HashMap<String, Float> map) {
-        // Create a list from elements of HashMap
-        List<Map.Entry<String, Float> > list = new LinkedList<Map.Entry<String, Float> >(map.entrySet());
-
-        // Sort the list
-        Collections.sort(list, new Comparator<Map.Entry<String, Float> >() {
-            public int compare(Map.Entry<String, Float> entry1, Map.Entry<String, Float> entry2){
-                return (entry2.getValue()).compareTo(entry1.getValue()); //entry2 first for descending
-            }
-        });
-
-        // put data from sorted list to hashmap
-        HashMap<String, Float> temp = new LinkedHashMap<String, Float>();
-        for (Map.Entry<String, Float> aa : list) {
-            temp.put(aa.getKey(), aa.getValue());
-        }
-        return temp;
-    }
 }

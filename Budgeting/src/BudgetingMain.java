@@ -252,6 +252,44 @@ public class BudgetingMain {
         return expenditures;
     }
 
+    public static Map<String, Float> sortCategoriesAfter(LocalDateTime start){
+        ArrayList<Expenditure> expenditures = BudgetingMain.getExpendituresBetween(start, LocalDateTime.now());
+        HashMap<String, Float> categoryValues = new HashMap();
+
+        for (String category:BudgetingMain.getCategories()) {
+            categoryValues.put(category, new Float(0)); //intellij says this isn't needed but apparently it is
+        }
+        for (Expenditure expense:expenditures) {
+            categoryValues.replace(expense.getCategory(),categoryValues.get(expense.getCategory()) + expense.getAmount());
+        }
+
+        Map<String, Float> sorted = sortByValue(categoryValues);
+
+        return sorted;
+
+
+    }
+
+    //Hashmap sorting code found at https://www.geeksforgeeks.org/sorting-a-hashmap-according-to-values/
+    public static HashMap<String, Float> sortByValue(HashMap<String, Float> map) {
+        // Create a list from elements of HashMap
+        List<Map.Entry<String, Float> > list = new LinkedList<Map.Entry<String, Float> >(map.entrySet());
+
+        // Sort the list
+        Collections.sort(list, new Comparator<Map.Entry<String, Float> >() {
+            public int compare(Map.Entry<String, Float> entry1, Map.Entry<String, Float> entry2){
+                return (entry2.getValue()).compareTo(entry1.getValue()); //entry2 first for descending
+            }
+        });
+
+        // put data from sorted list to hashmap
+        HashMap<String, Float> temp = new LinkedHashMap<String, Float>();
+        for (Map.Entry<String, Float> aa : list) {
+            temp.put(aa.getKey(), aa.getValue());
+        }
+        return temp;
+    }
+
 
     public static boolean saveToInformationFile(){
         try {

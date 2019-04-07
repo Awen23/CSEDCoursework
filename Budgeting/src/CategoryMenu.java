@@ -81,6 +81,8 @@ public class CategoryMenu {
         c.gridy = 0;
         c.gridwidth = 2;
         c.gridheight = 1;
+        c.ipady = 300;
+        c.ipadx = 300;
         c.fill = GridBagConstraints.BOTH;
         categoryFrame.add(categoryScroll, c);
 
@@ -112,6 +114,8 @@ public class CategoryMenu {
         c.gridy = 1;
         c.gridwidth = 1;
         c.gridheight = 1;
+        c.ipady = 0;
+        c.ipadx = 0;
         c.fill = GridBagConstraints.BOTH;
         categoryFrame.add(bAdd, c);
 
