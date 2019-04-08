@@ -28,7 +28,7 @@ import java.util.List;
 
 public class MainMenu {
     public JFrame mainFrame;
-    private PieDataset dataset;
+    private DefaultPieDataset dataset = new DefaultPieDataset();
 
     public MainMenu(){
 
@@ -99,7 +99,7 @@ public class MainMenu {
         c.gridy = 0;
         mainFrame.add(welcomeMessage, c);
 
-        dataset = createDataset();
+        dataset = createDataset(dataset);
         JFreeChart chart = ChartFactory.createPieChart("Total Budget: £"+BudgetingMain.getBudget(), dataset, true, true, false);
         PieSectionLabelGenerator labelGenerator = new StandardPieSectionLabelGenerator("{0} : £{1} ({2})", new DecimalFormat("0.00"), new DecimalFormat("0%"));
         ((PiePlot) chart.getPlot()).setLabelGenerator(labelGenerator);
@@ -145,7 +145,7 @@ public class MainMenu {
 
                 if (result == JOptionPane.OK_OPTION) {
                     addToAmountSpentParam(comboBox.getSelectedItem().toString() , (float) tempSpent);
-                    dataset = createDataset();
+                    dataset = createDataset(dataset);
                 }
             }
         });
@@ -266,8 +266,8 @@ public class MainMenu {
         }
     }
 
-    private PieDataset createDataset(){
-        DefaultPieDataset dataset = new DefaultPieDataset();
+    private DefaultPieDataset createDataset(DefaultPieDataset dataset){
+        //DefaultPieDataset dataset = new DefaultPieDataset();
 
         Map<String, Float> sortedCategories = BudgetingMain.sortCategoriesAfter(BudgetingMain.getBudgetStart().atStartOfDay());
         for (String key:sortedCategories.keySet()) {
